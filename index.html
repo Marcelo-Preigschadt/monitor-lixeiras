@@ -22,9 +22,9 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-3 text-sm font-medium">
-                <span id="status-sistema" class="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200">
-                    <span id="status-dot" class="h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse"></span>
-                    <span id="status-texto">Conectando...</span>
+                <span id="status-sistema" class="flex items-center gap-1.5 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200">
+                    <span id="status-dot" class="h-2.5 w-2.5 bg-gray-400 rounded-full"></span>
+                    <span id="status-texto">Verificando sensores...</span>
                 </span>
                 <span id="badge-alertas" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200">
                     <i class="fa-solid fa-bell"></i>
@@ -40,7 +40,7 @@
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Lixeiras</p>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Lixeiras Cadastradas</p>
                     <h3 id="metric-total" class="text-3xl font-bold text-gray-900 mt-1">0</h3>
                 </div>
                 <div class="bg-blue-50 text-blue-600 p-4 rounded-lg"><i class="fa-solid fa-dumpster text-2xl"></i></div>
@@ -48,7 +48,7 @@
 
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Críticas (&gt;80%)</p>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Críticas Online (&gt;80%)</p>
                     <h3 id="metric-criticas" class="text-3xl font-bold text-red-600 mt-1">0</h3>
                 </div>
                 <div class="bg-red-50 text-red-600 p-4 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-2xl"></i></div>
@@ -56,16 +56,16 @@
 
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ocupação Média</p>
-                    <h3 id="metric-media" class="text-3xl font-bold text-gray-900 mt-1">0%</h3>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ocupação Média Online</p>
+                    <h3 id="metric-media" class="text-3xl font-bold text-gray-900 mt-1">--</h3>
                 </div>
                 <div class="bg-purple-50 text-purple-600 p-4 rounded-lg"><i class="fa-solid fa-chart-pie text-2xl"></i></div>
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Último Sinal</p>
-                    <h3 id="metric-tempo" class="text-lg font-semibold text-gray-900 mt-2">--:--</h3>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Último Sinal Ativo</p>
+                    <h3 id="metric-tempo" class="text-lg font-semibold text-gray-900 mt-2">Sem sinal</h3>
                 </div>
                 <div class="bg-gray-50 text-gray-600 p-4 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-2xl"></i></div>
             </div>
