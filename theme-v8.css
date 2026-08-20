@@ -16,12 +16,23 @@ main {
     display: none !important;
 }
 
+/* O palco termina logo após os indicadores, sem altura mínima ou sobra inferior. */
+.monitoring-stage {
+    height: auto !important;
+    min-height: 0 !important;
+    padding-bottom: 18px !important;
+}
+
+.metrics-band {
+    margin-bottom: 0 !important;
+}
+
 /* Fluxo de dados com a mesma linguagem visual do palco principal */
 .gateway-strip {
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    margin-top: 18px;
+    margin-top: 12px;
     padding: 20px 24px;
     border: 1px solid #13261d;
     border-radius: 24px;
@@ -99,7 +110,12 @@ main {
         padding-top: 10px;
     }
 
+    .monitoring-stage {
+        padding-bottom: 14px !important;
+    }
+
     .gateway-strip {
+        margin-top: 10px;
         padding: 16px;
         border-radius: 20px;
     }
