@@ -10,38 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=8">
-    <link rel="stylesheet" href="theme-v8.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="theme-v8.css?v=9">
 </head>
 <body>
     <div class="page-shell">
-        <header class="topbar">
-            <a class="brand" href="#lixeiras" aria-label="EcoTrack - início">
-                <span class="brand-mark"><i class="fa-solid fa-recycle"></i></span>
-                <span>
-                    <strong>EcoTrack</strong>
-                    <small>Monitoramento inteligente</small>
-                </span>
-            </a>
-
-            <nav class="topnav" aria-label="Navegação principal">
-                <a href="#lixeiras">Lixeiras</a>
-                <a href="#indicadores">Indicadores</a>
-                <a href="#alertas">Eventos</a>
-            </nav>
-
-            <div class="topbar-status">
-                <div id="status-sistema" class="system-status is-offline">
-                    <span id="status-dot" class="status-dot"></span>
-                    <span id="status-texto">Verificando sensores...</span>
-                </div>
-                <div id="badge-alertas" class="alert-badge" title="Alertas ativos">
-                    <i class="fa-regular fa-bell"></i>
-                    <span id="qtd-alertas">0</span>
-                </div>
-            </div>
-        </header>
-
         <main>
             <div id="erro-conexao" class="hidden connection-error"></div>
 
@@ -51,11 +24,31 @@
                 <div class="stage-orbit stage-orbit-two" aria-hidden="true"></div>
 
                 <div class="stage-heading">
-                    <div>
-                        <span class="stage-kicker">TELEMETRIA AMBIENTAL / AO VIVO</span>
-                        <h2>Ocupação dos recipientes</h2>
+                    <div class="stage-heading-left">
+                        <a class="stage-brand" href="#lixeiras" aria-label="EcoTrack - início">
+                            <span class="stage-brand-mark"><i class="fa-solid fa-recycle"></i></span>
+                            <span class="stage-brand-copy">
+                                <strong>EcoTrack</strong>
+                                <small>Monitoramento inteligente</small>
+                            </span>
+                        </a>
+
+                        <div class="stage-title-block">
+                            <span class="stage-kicker">TELEMETRIA AMBIENTAL / AO VIVO</span>
+                            <h2>Ocupação dos recipientes</h2>
+                        </div>
                     </div>
-                    <div class="stage-live"><span></span> Atualização automática</div>
+
+                    <div class="stage-status-cluster">
+                        <div id="status-sistema" class="system-status is-offline">
+                            <span id="status-dot" class="status-dot"></span>
+                            <span id="status-texto">Verificando sensores...</span>
+                        </div>
+                        <div id="badge-alertas" class="alert-badge" title="Alertas ativos">
+                            <i class="fa-regular fa-bell"></i>
+                            <span id="qtd-alertas">0</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="monitor-grid">
@@ -151,6 +144,6 @@
         </footer>
     </div>
 
-    <script type="module" src="script.js?v=8"></script>
+    <script type="module" src="script.js?v=9"></script>
 </body>
 </html>
