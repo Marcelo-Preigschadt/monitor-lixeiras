@@ -1,15 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Projeto usado também pelo aplicativo MIT App Inventor.
 const SUPABASE_URL = 'https://xllbpyihfjfmtbzcrihs.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_l-jesCstcqUQN12aNUgQJg_PkLQHDWm'
+const LIMITE_SENSOR_ONLINE_MS = 15000
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 let lixeiras = []
 let canalRealtime = null
 let pollingId = null
-let realtimeAtivo = false
+let bancoDisponivel = false
 
 async function init() {
     await carregarDadosIniciais()
@@ -17,7 +17,7 @@ async function init() {
     iniciarPollingDeSeguranca()
 }
 
-async function carregarDadosIniciais({ silencioso = false } = {}) {
+async function carregarDadosIniciais() {
     try {
         const { data: cadastro, error: erroLixeiras } = await supabase
             .from('lixeiras')
@@ -36,9 +36,8 @@ async function carregarDadosIniciais({ silencioso = false } = {}) {
 
         const ultimaPorLixeira = new Map()
         for (const leitura of leituras || []) {
-            if (!ultimaPorLixeira.has(String(leitura.lixeira_id))) {
-                ultimaPorLixeira.set(String(leitura.lixeira_id), leitura)
-            }
+            const chave = String(leitura.lixeira_id)
+            if (!ultimaPorLixeira.has(chave)) ultimaPorLixeira.set(chave, leitura)
         }
 
         lixeiras = (cadastro || []).map(item => {
@@ -48,60 +47,42 @@ async function carregarDadosIniciais({ silencioso = false } = {}) {
                 nome: item.nome,
                 localizacao: item.localizacao,
                 altura_cm: normalizarNumero(item.altura_cm, 0),
-                percentual: ultima ? normalizarPercentual(ultima.percentual_cheio) : 0,
+                percentual: ultima ? normalizarPercentual(ultima.percentual_cheio) : null,
                 atualizado_em: ultima?.criado_em ? new Date(ultima.criado_em) : null
             }
         })
 
+        bancoDisponivel = true
         esconderErro()
         renderizarDashboard()
-
-        if (!silencioso && !realtimeAtivo) {
-            atualizarStatusSistema('Sincronizado', 'ok')
-        }
     } catch (err) {
+        bancoDisponivel = false
         console.error('Erro ao carregar dados:', err)
         mostrarErro(`Falha ao consultar o Supabase: ${err.message || err}`)
-        atualizarStatusSistema('Sem conexão', 'erro')
+        atualizarStatusSistema('Banco indisponível', 'erro')
     }
 }
 
 function configurarRealtime() {
-    if (canalRealtime) {
-        supabase.removeChannel(canalRealtime)
-    }
+    if (canalRealtime) supabase.removeChannel(canalRealtime)
 
     canalRealtime = supabase
         .channel('ecotrack-leituras')
         .on(
             'postgres_changes',
-            {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'leituras'
-            },
+            { event: 'INSERT', schema: 'public', table: 'leituras' },
             payload => processarNovaLeitura(payload.new)
         )
         .subscribe(status => {
-            if (status === 'SUBSCRIBED') {
-                realtimeAtivo = true
-                atualizarStatusSistema('Tempo real online', 'ok')
-                esconderErro()
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                realtimeAtivo = false
-                atualizarStatusSistema('Polling ativo', 'aviso')
-                mostrarErro('Realtime indisponível. O painel continuará atualizando automaticamente a cada 5 segundos.')
-            } else if (status === 'CLOSED') {
-                realtimeAtivo = false
-                atualizarStatusSistema('Polling ativo', 'aviso')
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                console.warn('Realtime indisponível; polling de 5 s permanece ativo.')
             }
         })
 }
 
-// Garante atualização do GitHub Pages mesmo se a tabela não estiver habilitada no Realtime.
 function iniciarPollingDeSeguranca() {
     if (pollingId) clearInterval(pollingId)
-    pollingId = setInterval(() => sincronizarUltimasLeituras(), 5000)
+    pollingId = setInterval(sincronizarUltimasLeituras, 5000)
 }
 
 async function sincronizarUltimasLeituras() {
@@ -114,7 +95,9 @@ async function sincronizarUltimasLeituras() {
 
         if (error) throw error
 
-        let mudou = false
+        bancoDisponivel = true
+        esconderErro()
+
         const maisRecentes = new Map()
         for (const leitura of data || []) {
             const chave = String(leitura.lixeira_id)
@@ -130,24 +113,26 @@ async function sincronizarUltimasLeituras() {
 
             if (!dataAtual || (dataNova && dataNova > dataAtual)) {
                 atualizarLixeiraComLeitura(index, leitura, true)
-                mudou = true
             }
         }
 
-        if (mudou) renderizarDashboard()
-        if (!realtimeAtivo) atualizarStatusSistema('Polling ativo', 'aviso')
+        // Renderiza em todo ciclo para que um sensor passe a Offline automaticamente
+        // quando deixa de transmitir, mesmo sem chegar uma nova leitura.
+        renderizarDashboard()
     } catch (err) {
+        bancoDisponivel = false
         console.error('Erro no polling:', err)
         mostrarErro(`Falha ao sincronizar leituras: ${err.message || err}`)
-        atualizarStatusSistema('Sem conexão', 'erro')
+        atualizarStatusSistema('Banco indisponível', 'erro')
     }
 }
 
 function processarNovaLeitura(leitura) {
+    bancoDisponivel = true
     const index = lixeiras.findIndex(l => String(l.id) === String(leitura.lixeira_id))
 
     if (index === -1) {
-        carregarDadosIniciais({ silencioso: true })
+        carregarDadosIniciais()
         return
     }
 
@@ -157,13 +142,25 @@ function processarNovaLeitura(leitura) {
 
 function atualizarLixeiraComLeitura(index, leitura, gerarAlerta) {
     const lixeira = lixeiras[index]
+    const estavaOnline = sensorEstaOnline(lixeira)
     const nivelAntigo = lixeira.percentual
     const novoNivel = normalizarPercentual(leitura.percentual_cheio)
 
     lixeira.percentual = novoNivel
     lixeira.atualizado_em = leitura.criado_em ? new Date(leitura.criado_em) : new Date()
 
-    if (gerarAlerta) verificarRegrasDeAlerta(lixeira, nivelAntigo, novoNivel)
+    // Uma leitura antiga não deve gerar transição de alerta quando o sensor reconecta.
+    if (gerarAlerta && estavaOnline && nivelAntigo !== null) {
+        verificarRegrasDeAlerta(lixeira, nivelAntigo, novoNivel)
+    }
+}
+
+function sensorEstaOnline(lixeira) {
+    const data = lixeira?.atualizado_em
+    if (!(data instanceof Date) || Number.isNaN(data.getTime())) return false
+
+    const idade = Date.now() - data.getTime()
+    return idade >= -60000 && idade <= LIMITE_SENSOR_ONLINE_MS
 }
 
 function verificarRegrasDeAlerta(lixeira, antigo, novo) {
@@ -191,18 +188,9 @@ function adicionarAlertaNoFeed(mensagem, tipo) {
     if (feed.querySelector('.text-gray-400')) feed.innerHTML = ''
 
     const configs = {
-        danger: {
-            card: 'bg-red-50 border-red-200 text-red-800',
-            icon: 'fa-triangle-exclamation text-red-500'
-        },
-        warning: {
-            card: 'bg-amber-50 border-amber-200 text-amber-800',
-            icon: 'fa-circle-exclamation text-amber-500'
-        },
-        success: {
-            card: 'bg-green-50 border-green-200 text-green-800',
-            icon: 'fa-circle-check text-green-500'
-        }
+        danger: { card: 'bg-red-50 border-red-200 text-red-800', icon: 'fa-triangle-exclamation text-red-500' },
+        warning: { card: 'bg-amber-50 border-amber-200 text-amber-800', icon: 'fa-circle-exclamation text-amber-500' },
+        success: { card: 'bg-green-50 border-green-200 text-green-800', icon: 'fa-circle-check text-green-500' }
     }
 
     const config = configs[tipo] || configs.warning
@@ -210,9 +198,7 @@ function adicionarAlertaNoFeed(mensagem, tipo) {
     div.className = `p-3 rounded-lg border flex items-start gap-2.5 shadow-sm animate-slide-in ${config.card}`
 
     const hora = new Date().toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
     })
 
     div.innerHTML = `
@@ -228,6 +214,7 @@ function adicionarAlertaNoFeed(mensagem, tipo) {
 
 function renderizarDashboard() {
     calcularEMostrarMetricas()
+    atualizarStatusDosSensores()
 
     const listaContainer = document.getElementById('lista-lixeiras')
     if (!listaContainer) return
@@ -238,23 +225,37 @@ function renderizarDashboard() {
     }
 
     listaContainer.innerHTML = lixeiras.map(lixeira => {
-        let corBarra = 'bg-green-500'
-        let corBg = 'bg-green-50'
-        let corTexto = 'text-green-700'
+        const online = sensorEstaOnline(lixeira)
+        const percentual = lixeira.percentual ?? 0
 
-        if (lixeira.percentual >= 80) {
-            corBarra = 'bg-red-500'
-            corBg = 'bg-red-50'
-            corTexto = 'text-red-700'
-        } else if (lixeira.percentual >= 60) {
-            corBarra = 'bg-amber-500'
-            corBg = 'bg-amber-50'
-            corTexto = 'text-amber-700'
+        let corBarra = 'bg-gray-400'
+        let corBg = 'bg-gray-100'
+        let corTexto = 'text-gray-600'
+        let textoBadge = 'Offline'
+        let larguraBarra = 0
+
+        if (online) {
+            larguraBarra = percentual
+            textoBadge = `${percentual}% Cheia`
+            corBarra = 'bg-green-500'
+            corBg = 'bg-green-50'
+            corTexto = 'text-green-700'
+
+            if (percentual >= 80) {
+                corBarra = 'bg-red-500'
+                corBg = 'bg-red-50'
+                corTexto = 'text-red-700'
+            } else if (percentual >= 60) {
+                corBarra = 'bg-amber-500'
+                corBg = 'bg-amber-50'
+                corTexto = 'text-amber-700'
+            }
         }
 
-        const ultimaVez = lixeira.atualizado_em
-            ? lixeira.atualizado_em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            : '--:--'
+        const ultimoSinal = formatarDataHora(lixeira.atualizado_em)
+        const historico = !online && lixeira.percentual !== null
+            ? `<span>Última leitura registrada: ${percentual}%</span>`
+            : '<span></span>'
 
         return `
             <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-colors">
@@ -267,41 +268,44 @@ function renderizarDashboard() {
                         </p>
                     </div>
                     <span class="px-2.5 py-1 text-xs font-bold rounded-full ${corBg} ${corTexto}">
-                        ${lixeira.percentual}% Cheia
+                        ${textoBadge}
                     </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden shadow-inner">
-                    <div class="${corBarra} h-3.5 rounded-full transition-all duration-500 ease-out" style="width: ${lixeira.percentual}%"></div>
+                    <div class="${corBarra} h-3.5 rounded-full transition-all duration-500 ease-out" style="width: ${larguraBarra}%"></div>
                 </div>
                 <div class="flex justify-between text-[11px] text-gray-400 mt-2 gap-4">
                     <span>Altura cadastrada: ${lixeira.altura_cm || 0} cm</span>
-                    <span>Último sinal: ${ultimaVez}</span>
+                    <span>Último sinal: ${ultimoSinal}</span>
                 </div>
+                <div class="text-[11px] text-gray-400 mt-1">${historico}</div>
             </div>
         `
     }).join('')
 }
 
 function calcularEMostrarMetricas() {
+    const online = lixeiras.filter(sensorEstaOnline)
     const total = lixeiras.length
-    const criticas = lixeiras.filter(l => l.percentual >= 80).length
-    const somaPercentuais = lixeiras.reduce((acc, l) => acc + l.percentual, 0)
-    const media = total > 0 ? Math.round(somaPercentuais / total) : 0
+    const criticas = online.filter(l => (l.percentual ?? 0) >= 80).length
+    const media = online.length > 0
+        ? Math.round(online.reduce((acc, l) => acc + (l.percentual ?? 0), 0) / online.length)
+        : null
 
-    const datas = lixeiras
+    const datasOnline = online
         .map(l => l.atualizado_em)
         .filter(d => d instanceof Date && !Number.isNaN(d.getTime()))
 
-    const maisRecente = datas.length > 0
-        ? new Date(Math.max(...datas.map(d => d.getTime())))
+    const maisRecenteOnline = datasOnline.length > 0
+        ? new Date(Math.max(...datasOnline.map(d => d.getTime())))
         : null
 
     document.getElementById('metric-total').innerText = total
     document.getElementById('metric-criticas').innerText = criticas
-    document.getElementById('metric-media').innerText = `${media}%`
-    document.getElementById('metric-tempo').innerText = maisRecente
-        ? maisRecente.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-        : '--:--'
+    document.getElementById('metric-media').innerText = media === null ? '--' : `${media}%`
+    document.getElementById('metric-tempo').innerText = maisRecenteOnline
+        ? maisRecenteOnline.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        : 'Sem sinal'
 
     document.getElementById('qtd-alertas').innerText = criticas
     const badge = document.getElementById('badge-alertas')
@@ -310,6 +314,22 @@ function calcularEMostrarMetricas() {
         badge.className = 'flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1.5 rounded-full border border-red-200 font-bold animate-bounce'
     } else {
         badge.className = 'flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200'
+    }
+}
+
+function atualizarStatusDosSensores() {
+    if (!bancoDisponivel) {
+        atualizarStatusSistema('Banco indisponível', 'erro')
+        return
+    }
+
+    const online = lixeiras.filter(sensorEstaOnline).length
+    if (online === 0) {
+        atualizarStatusSistema('Nenhum sensor online', 'offline')
+    } else if (online === 1) {
+        atualizarStatusSistema('1 sensor online', 'ok')
+    } else {
+        atualizarStatusSistema(`${online} sensores online`, 'ok')
     }
 }
 
@@ -324,9 +344,9 @@ function atualizarStatusSistema(texto, tipo) {
             status: 'flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200',
             dot: 'h-2.5 w-2.5 bg-green-500 rounded-full animate-pulse'
         },
-        aviso: {
-            status: 'flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200',
-            dot: 'h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse'
+        offline: {
+            status: 'flex items-center gap-1.5 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200',
+            dot: 'h-2.5 w-2.5 bg-gray-400 rounded-full'
         },
         erro: {
             status: 'flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1.5 rounded-full border border-red-200',
@@ -334,10 +354,18 @@ function atualizarStatusSistema(texto, tipo) {
         }
     }
 
-    const config = estilos[tipo] || estilos.aviso
+    const config = estilos[tipo] || estilos.offline
     status.className = config.status
     dot.className = config.dot
     label.innerText = texto
+}
+
+function formatarDataHora(data) {
+    if (!(data instanceof Date) || Number.isNaN(data.getTime())) return 'Nunca'
+    return data.toLocaleString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    })
 }
 
 function mostrarErro(mensagem) {
