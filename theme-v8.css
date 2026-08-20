@@ -1,30 +1,173 @@
-/* Ajustes visuais v8: foco nas lixeiras e continuidade do palco verde */
+/* Ajustes visuais v9: identidade e status integrados ao palco verde */
 
 main {
-    padding-top: 14px;
+    padding-top: 8px;
 }
 
-/* A barra superior acompanha a rolagem normal da página e não cobre o conteúdo. */
-.topbar {
-    position: relative !important;
-    top: auto !important;
-    z-index: 1 !important;
-}
-
-/* A faixa introdutória foi removida do HTML; esta regra protege contra cache antigo. */
-.intro-row {
+.intro-row,
+.topbar,
+.stage-live {
     display: none !important;
 }
 
-/* O palco termina logo após os indicadores, sem altura mínima ou sobra inferior. */
+/* O palco termina logo após os indicadores. */
 .monitoring-stage {
     height: auto !important;
     min-height: 0 !important;
+    padding-top: 24px !important;
     padding-bottom: 18px !important;
 }
 
 .metrics-band {
     margin-bottom: 0 !important;
+}
+
+/* Cabeçalho interno do palco verde */
+.stage-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 28px !important;
+    margin-bottom: 22px !important;
+    padding: 0 4px !important;
+}
+
+.stage-heading-left {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.stage-brand {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 13px;
+    color: #f7fbf8;
+    text-decoration: none;
+}
+
+.stage-brand-mark {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(186, 243, 77, .30);
+    border-radius: 16px;
+    background: rgba(186, 243, 77, .10);
+    color: #baf34d;
+    font-size: 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.stage-brand-copy strong,
+.stage-brand-copy small {
+    display: block;
+}
+
+.stage-brand-copy strong {
+    color: #ffffff;
+    font-size: 25px;
+    line-height: 1;
+    letter-spacing: -.045em;
+    font-weight: 800;
+}
+
+.stage-brand-copy small {
+    margin-top: 5px;
+    color: #93a69a;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.stage-title-block {
+    min-width: 0;
+    padding-left: 28px;
+    border-left: 1px solid rgba(255,255,255,.13);
+}
+
+.stage-title-block .stage-kicker {
+    margin-bottom: 6px;
+    color: #baf34d;
+}
+
+.stage-title-block h2 {
+    margin: 0;
+    color: #f4f8f5;
+    font-size: 26px;
+    line-height: 1.08;
+    letter-spacing: -.04em;
+    font-weight: 800;
+}
+
+/* Status do sensor e alertas ocupam o antigo espaço da atualização automática. */
+.stage-status-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.stage-status-cluster #status-sistema {
+    min-height: 46px;
+    padding: 0 15px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 13px;
+    background: rgba(255,255,255,.065);
+    color: #eef6f0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(8px);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.stage-status-cluster #status-sistema.is-offline {
+    color: #d2ddd6;
+}
+
+.stage-status-cluster #status-sistema.is-ok {
+    color: #efffdf;
+    border-color: rgba(186,243,77,.24);
+    background: rgba(186,243,77,.08);
+}
+
+.stage-status-cluster #status-sistema.is-error {
+    color: #ffd7da;
+    border-color: rgba(233,96,103,.30);
+    background: rgba(233,96,103,.10);
+}
+
+.stage-status-cluster #status-sistema.is-ok #status-dot {
+    background: #baf34d;
+    box-shadow: 0 0 0 5px rgba(186,243,77,.10);
+}
+
+.stage-status-cluster #status-sistema.is-offline #status-dot {
+    background: #9ca9a0;
+}
+
+.stage-status-cluster #status-sistema.is-error #status-dot {
+    background: #ff7a82;
+    box-shadow: 0 0 0 5px rgba(255,122,130,.10);
+}
+
+.stage-status-cluster #badge-alertas {
+    min-width: 50px;
+    height: 46px;
+    padding: 0 13px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 13px;
+    background: rgba(255,255,255,.065);
+    color: #eef6f0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(8px);
+}
+
+.stage-status-cluster #badge-alertas.has-alerts {
+    border-color: rgba(255, 122, 130, .32) !important;
+    background: rgba(233,96,103,.12) !important;
+    color: #ffafb4 !important;
 }
 
 /* Fluxo de dados com a mesma linguagem visual do palco principal */
@@ -105,13 +248,63 @@ main {
     color: #7f9387;
 }
 
+@media (max-width: 980px) {
+    .stage-heading {
+        grid-template-columns: 1fr !important;
+        align-items: start !important;
+    }
+
+    .stage-status-cluster {
+        justify-content: flex-start;
+    }
+}
+
 @media (max-width: 760px) {
     main {
-        padding-top: 10px;
+        padding-top: 6px;
     }
 
     .monitoring-stage {
+        padding-top: 18px !important;
         padding-bottom: 14px !important;
+    }
+
+    .stage-heading-left {
+        align-items: flex-start;
+        gap: 16px;
+        flex-direction: column;
+    }
+
+    .stage-title-block {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    .stage-brand-mark {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        font-size: 19px;
+    }
+
+    .stage-brand-copy strong {
+        font-size: 22px;
+    }
+
+    .stage-title-block h2 {
+        font-size: 23px;
+    }
+
+    .stage-status-cluster {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .stage-status-cluster #status-sistema {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
     }
 
     .gateway-strip {
