@@ -4,9 +4,11 @@
 constexpr uint8_t PIN_TRIG = 8;
 constexpr uint8_t PIN_ECHO = 9;
 
-// HC-05/HC-06: Arduino RX <- TX do módulo | Arduino TX -> RX do módulo
-constexpr uint8_t PIN_BT_RX = 10;
-constexpr uint8_t PIN_BT_TX = 11;
+// PINAGEM ORIGINAL DO BLUETOOTH
+// Arduino RX recebe o TX do HC-05/HC-06.
+// Arduino TX envia para o RX do HC-05/HC-06.
+constexpr uint8_t PIN_BT_RX = 2;
+constexpr uint8_t PIN_BT_TX = 3;
 SoftwareSerial bluetooth(PIN_BT_RX, PIN_BT_TX);
 
 // Distância do sensor até o fundo da lixeira quando ela está vazia.
@@ -48,7 +50,7 @@ void setup() {
 
   Serial.println(F("Monitor de lixeira iniciado"));
   Serial.println(F("HC-SR04: TRIG=8 ECHO=9"));
-  Serial.println(F("Bluetooth: HC-05 TX->10 | HC-05 RX<-11"));
+  Serial.println(F("Bluetooth: HC-05 TX->2 | HC-05 RX<-3"));
 }
 
 void loop() {
@@ -59,9 +61,6 @@ void loop() {
   const int percentual = calcularPercentual(distancia);
 
   if (percentual < 0) {
-    // -1 serve apenas como diagnóstico para o aplicativo.
-    // A política do Supabase não aceita percentual negativo, portanto
-    // esse valor não será tratado como leitura válida pelo site.
     bluetooth.println(-1);
     Serial.println(F("ERRO: HC-SR04 sem resposta; enviado -1 via Bluetooth"));
     return;
