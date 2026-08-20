@@ -1,0 +1,103 @@
+/* Ajustes visuais v8: foco nas lixeiras e continuidade do palco verde */
+
+main {
+    padding-top: 14px;
+}
+
+/* A faixa introdutória foi removida do HTML; esta regra protege contra cache antigo. */
+.intro-row {
+    display: none !important;
+}
+
+/* Fluxo de dados com a mesma linguagem visual do palco principal */
+.gateway-strip {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    margin-top: 18px;
+    padding: 20px 24px;
+    border: 1px solid #13261d;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(186, 243, 77, .10), transparent 20%),
+        radial-gradient(circle at 16% 80%, rgba(47, 190, 119, .08), transparent 26%),
+        linear-gradient(145deg, #0c1912 0%, #102119 52%, #0c1812 100%);
+    box-shadow: 0 20px 48px rgba(16, 33, 24, .18);
+}
+
+.gateway-strip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    opacity: .18;
+    background-image:
+        linear-gradient(rgba(202, 240, 213, .10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(202, 240, 213, .10) 1px, transparent 1px);
+    background-size: 44px 44px;
+}
+
+.gateway-strip::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    width: 270px;
+    height: 270px;
+    right: -80px;
+    top: -120px;
+    border: 1px solid rgba(186, 243, 77, .13);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 52px rgba(186, 243, 77, .025),
+        0 0 0 104px rgba(47, 190, 119, .018);
+    pointer-events: none;
+}
+
+.gateway-copy .section-label {
+    color: #baf34d;
+    border-right-color: rgba(255, 255, 255, .14);
+}
+
+.gateway-copy h2 {
+    color: #f4f8f5;
+}
+
+.gateway-copy p {
+    color: #98aaa0;
+}
+
+.gateway-flow {
+    position: relative;
+    z-index: 1;
+}
+
+.gateway-node {
+    border-color: rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .055);
+    color: #eef6f0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+    backdrop-filter: blur(7px);
+}
+
+.gateway-node i {
+    color: #baf34d;
+}
+
+.flow-arrow {
+    color: #7f9387;
+}
+
+@media (max-width: 760px) {
+    main {
+        padding-top: 10px;
+    }
+
+    .gateway-strip {
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .gateway-copy .section-label {
+        border-right: 0;
+    }
+}
