@@ -3,95 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoTrack - Monitoramento de Lixeiras</title>
+    <meta name="theme-color" content="#0b1612">
+    <title>EcoTrack | Monitoramento de Lixeiras</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
-<body class="bg-gray-100 font-sans text-gray-800">
-
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-green-500 text-white p-2.5 rounded-lg">
-                    <i class="fa-solid fa-trash-can text-xl"></i>
-                </div>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark"><i class="fa-solid fa-leaf"></i></div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">EcoTrack</h1>
-                    <p class="text-xs text-gray-500">Gestão Inteligente de Resíduos</p>
+                    <strong>EcoTrack</strong>
+                    <span>Smart Waste</span>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center justify-center gap-3 text-sm font-medium">
-                <span id="status-sistema" class="flex items-center gap-1.5 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200">
-                    <span id="status-dot" class="h-2.5 w-2.5 bg-gray-400 rounded-full"></span>
-                    <span id="status-texto">Verificando sensores...</span>
-                </span>
-                <span id="badge-alertas" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="qtd-alertas">0</span> Alertas Ativos
-                </span>
+
+            <nav class="sidebar-nav" aria-label="Navegação principal">
+                <a class="nav-item active" href="#visao-geral">
+                    <i class="fa-solid fa-grid-2"></i>
+                    <span>Visão geral</span>
+                </a>
+                <a class="nav-item" href="#lixeiras">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Lixeiras</span>
+                </a>
+                <a class="nav-item" href="#alertas">
+                    <i class="fa-regular fa-bell"></i>
+                    <span>Alertas</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-info-icon"><i class="fa-solid fa-wifi"></i></div>
+                <div>
+                    <span>Gateway IoT</span>
+                    <strong>HC-06 + Supabase</strong>
+                </div>
             </div>
+        </aside>
+
+        <div class="workspace">
+            <header class="topbar">
+                <div class="mobile-brand">
+                    <div class="brand-mark"><i class="fa-solid fa-leaf"></i></div>
+                    <strong>EcoTrack</strong>
+                </div>
+
+                <div class="topbar-copy">
+                    <span class="eyebrow">MONITORAMENTO EM TEMPO REAL</span>
+                    <h1>Painel de resíduos</h1>
+                </div>
+
+                <div class="topbar-actions">
+                    <div id="status-sistema" class="system-pill">
+                        <span id="status-dot" class="system-dot"></span>
+                        <span id="status-texto">Verificando sensores...</span>
+                    </div>
+
+                    <div id="badge-alertas" class="alert-pill">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="qtd-alertas">0</span>
+                        <span class="alert-pill-label">alertas</span>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <section id="visao-geral" class="hero-panel">
+                    <div>
+                        <span class="section-kicker">OPERAÇÃO</span>
+                        <h2>Visão geral do sistema</h2>
+                        <p>Acompanhe a ocupação das lixeiras, conectividade dos sensores e ocorrências em tempo real.</p>
+                    </div>
+                    <div class="hero-chip">
+                        <span class="hero-chip-dot"></span>
+                        Atualização automática
+                    </div>
+                </section>
+
+                <div id="erro-conexao" class="hidden connection-error"></div>
+
+                <section class="metrics-grid" aria-label="Indicadores do sistema">
+                    <article class="metric-card metric-blue">
+                        <div class="metric-icon"><i class="fa-solid fa-trash-can"></i></div>
+                        <div class="metric-content">
+                            <span>Lixeiras cadastradas</span>
+                            <strong id="metric-total">0</strong>
+                            <small>Total monitorado</small>
+                        </div>
+                    </article>
+
+                    <article class="metric-card metric-red">
+                        <div class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="metric-content">
+                            <span>Críticas online</span>
+                            <strong id="metric-criticas">0</strong>
+                            <small>Acima de 80%</small>
+                        </div>
+                    </article>
+
+                    <article class="metric-card metric-violet">
+                        <div class="metric-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                        <div class="metric-content">
+                            <span>Ocupação média</span>
+                            <strong id="metric-media">--</strong>
+                            <small>Sensores online</small>
+                        </div>
+                    </article>
+
+                    <article class="metric-card metric-green">
+                        <div class="metric-icon"><i class="fa-solid fa-signal"></i></div>
+                        <div class="metric-content">
+                            <span>Último sinal ativo</span>
+                            <strong id="metric-tempo" class="metric-time">Sem sinal</strong>
+                            <small>Última telemetria</small>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="content-grid">
+                    <article id="lixeiras" class="panel bins-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="section-kicker">DISPOSITIVOS</span>
+                                <h3>Status das lixeiras</h3>
+                            </div>
+                            <div class="panel-header-icon"><i class="fa-solid fa-wave-square"></i></div>
+                        </div>
+
+                        <div id="lista-lixeiras" class="bins-list">
+                            <div class="loading-state">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                <span>Carregando dados das lixeiras...</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <aside id="alertas" class="panel alerts-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="section-kicker">EVENTOS</span>
+                                <h3>Alertas em tempo real</h3>
+                            </div>
+                            <div class="panel-header-icon amber"><i class="fa-solid fa-bolt"></i></div>
+                        </div>
+
+                        <div id="feed-alertas" class="alerts-feed">
+                            <div class="empty-alerts">
+                                <div class="empty-alerts-icon"><i class="fa-regular fa-bell"></i></div>
+                                <strong>Nenhum evento recente</strong>
+                                <span>Os alertas do sistema aparecerão aqui.</span>
+                            </div>
+                        </div>
+                    </aside>
+                </section>
+            </main>
+
+            <footer class="app-footer">
+                <span>EcoTrack · Monitoramento inteligente de resíduos</span>
+                <span>Dados sincronizados com Supabase</span>
+            </footer>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div id="erro-conexao" class="hidden mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></div>
-
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Lixeiras Cadastradas</p>
-                    <h3 id="metric-total" class="text-3xl font-bold text-gray-900 mt-1">0</h3>
-                </div>
-                <div class="bg-blue-50 text-blue-600 p-4 rounded-lg"><i class="fa-solid fa-dumpster text-2xl"></i></div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Críticas Online (&gt;80%)</p>
-                    <h3 id="metric-criticas" class="text-3xl font-bold text-red-600 mt-1">0</h3>
-                </div>
-                <div class="bg-red-50 text-red-600 p-4 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-2xl"></i></div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ocupação Média Online</p>
-                    <h3 id="metric-media" class="text-3xl font-bold text-gray-900 mt-1">--</h3>
-                </div>
-                <div class="bg-purple-50 text-purple-600 p-4 rounded-lg"><i class="fa-solid fa-chart-pie text-2xl"></i></div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Último Sinal Ativo</p>
-                    <h3 id="metric-tempo" class="text-lg font-semibold text-gray-900 mt-2">Sem sinal</h3>
-                </div>
-                <div class="bg-gray-50 text-gray-600 p-4 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-2xl"></i></div>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <section class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-green-600"></i> Status das Lixeiras
-                </h2>
-                <div id="lista-lixeiras" class="space-y-5">
-                    <p class="text-gray-500 text-sm py-4 text-center">Carregando dados das lixeiras...</p>
-                </div>
-            </section>
-
-            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col h-[500px]">
-                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-amber-500"></i> Alertas em Tempo Real
-                </h2>
-                <div id="feed-alertas" class="space-y-3 overflow-y-auto flex-1 pr-1 text-sm">
-                    <div class="text-center text-gray-400 py-8">Nenhum evento registrado ainda.</div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js?v=4"></script>
 </body>
 </html>
