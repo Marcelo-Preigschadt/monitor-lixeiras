@@ -3,159 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#101713">
-    <title>EcoTrack | Central de Monitoramento</title>
+    <meta name="theme-color" content="#f4f5f0">
+    <title>EcoTrack | Monitoramento de Lixeiras</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
-    <div class="site-frame">
-        <header class="masthead">
-            <a class="brand-lockup" href="#visao-geral" aria-label="EcoTrack - início">
-                <span class="brand-symbol"><span></span><span></span><span></span></span>
-                <span class="brand-copy">
+    <div class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="#visao-geral" aria-label="EcoTrack - início">
+                <span class="brand-mark"><i class="fa-solid fa-recycle"></i></span>
+                <span>
                     <strong>EcoTrack</strong>
-                    <small>Waste telemetry</small>
+                    <small>Monitoramento inteligente</small>
                 </span>
             </a>
 
-            <nav class="mast-nav" aria-label="Navegação principal">
-                <a href="#visao-geral">Visão geral</a>
-                <a href="#lixeiras">Dispositivos</a>
+            <nav class="topnav" aria-label="Navegação principal">
+                <a href="#lixeiras">Lixeiras</a>
+                <a href="#indicadores">Indicadores</a>
                 <a href="#alertas">Eventos</a>
             </nav>
 
-            <div id="badge-alertas" class="alert-counter">
-                <span class="alert-label">EVENTOS</span>
-                <i class="fa-regular fa-bell"></i>
-                <span id="qtd-alertas">0</span>
+            <div class="topbar-status">
+                <div id="status-sistema" class="system-status is-offline">
+                    <span id="status-dot" class="status-dot"></span>
+                    <span id="status-texto">Verificando sensores...</span>
+                </div>
+                <div id="badge-alertas" class="alert-badge">
+                    <i class="fa-regular fa-bell"></i>
+                    <span id="qtd-alertas">0</span>
+                </div>
             </div>
         </header>
 
         <main>
-            <section id="visao-geral" class="command-deck">
-                <div class="deck-grid" aria-hidden="true"></div>
-                <div class="deck-orbit deck-orbit-a" aria-hidden="true"></div>
-                <div class="deck-orbit deck-orbit-b" aria-hidden="true"></div>
-
-                <div class="deck-copy">
-                    <span class="micro-label">REDE / TELEMETRIA AMBIENTAL</span>
-                    <h1>Resíduos sob<br><em>leitura contínua.</em></h1>
-                    <p>Uma visão operacional da ocupação das lixeiras, conectividade dos sensores e eventos críticos da rede.</p>
+            <section id="visao-geral" class="intro-row">
+                <div>
+                    <span class="section-label">Central de monitoramento</span>
+                    <h1>Nível das lixeiras em tempo real</h1>
                 </div>
-
-                <div class="signal-console">
-                    <div class="console-topline">
-                        <span>GATEWAY</span>
-                        <span>LIVE FEED</span>
-                    </div>
-                    <div id="status-sistema" class="system-readout">
-                        <span id="status-dot" class="system-dot"></span>
-                        <span id="status-texto">Verificando sensores...</span>
-                    </div>
-                    <div class="signal-route">
-                        <span>HC-06</span><i class="fa-solid fa-arrow-right-long"></i>
-                        <span>APP</span><i class="fa-solid fa-arrow-right-long"></i>
-                        <span>SUPABASE</span>
-                    </div>
-                    <small>Transmissão de campo para a nuvem</small>
-                </div>
-
-                <section class="telemetry-strip" aria-label="Indicadores do sistema">
-                    <article class="telemetry-item">
-                        <span class="telemetry-index">01</span>
-                        <div>
-                            <span class="telemetry-label">Lixeiras cadastradas</span>
-                            <strong id="metric-total">0</strong>
-                            <small>unidades monitoradas</small>
-                        </div>
-                    </article>
-
-                    <article class="telemetry-item critical">
-                        <span class="telemetry-index">02</span>
-                        <div>
-                            <span class="telemetry-label">Críticas online</span>
-                            <strong id="metric-criticas">0</strong>
-                            <small>acima de 80%</small>
-                        </div>
-                    </article>
-
-                    <article class="telemetry-item">
-                        <span class="telemetry-index">03</span>
-                        <div>
-                            <span class="telemetry-label">Ocupação média</span>
-                            <strong id="metric-media">--</strong>
-                            <small>somente sensores online</small>
-                        </div>
-                    </article>
-
-                    <article class="telemetry-item signal-time">
-                        <span class="telemetry-index">04</span>
-                        <div>
-                            <span class="telemetry-label">Último sinal ativo</span>
-                            <strong id="metric-tempo">Sem sinal</strong>
-                            <small>última telemetria recebida</small>
-                        </div>
-                    </article>
-                </section>
+                <p>Ocupação, conectividade e histórico recente dos sensores instalados.</p>
             </section>
 
             <div id="erro-conexao" class="hidden connection-error"></div>
 
-            <section class="operations-grid">
-                <article id="lixeiras" class="devices-zone">
-                    <div class="section-heading">
-                        <div>
-                            <span class="micro-label dark">DISPOSITIVOS DE CAMPO</span>
-                            <h2>Estado da rede</h2>
-                        </div>
-                        <p>Nível de ocupação, localização e atividade dos sensores instalados.</p>
+            <section id="lixeiras" class="live-section">
+                <div class="section-head">
+                    <div>
+                        <h2>Lixeiras monitoradas</h2>
+                        <p>O recipiente mostra visualmente quanto já está ocupado.</p>
                     </div>
+                    <div class="live-indicator"><span></span> Atualização automática</div>
+                </div>
 
-                    <div id="lista-lixeiras" class="device-list">
-                        <div class="loading-state">
-                            <span class="loading-pulse"></span>
-                            <span>Sincronizando dispositivos...</span>
-                        </div>
+                <div id="lista-lixeiras" class="bin-grid">
+                    <div class="loading-state">
+                        <span class="loader"></span>
+                        <span>Carregando leituras...</span>
                     </div>
+                </div>
+            </section>
+
+            <section id="indicadores" class="metrics-band" aria-label="Indicadores do sistema">
+                <article>
+                    <span>Lixeiras cadastradas</span>
+                    <strong id="metric-total">0</strong>
+                    <small>Total no sistema</small>
                 </article>
+                <article>
+                    <span>Críticas online</span>
+                    <strong id="metric-criticas">0</strong>
+                    <small>Nível acima de 80%</small>
+                </article>
+                <article>
+                    <span>Ocupação média</span>
+                    <strong id="metric-media">--</strong>
+                    <small>Somente sensores online</small>
+                </article>
+                <article>
+                    <span>Último sinal ativo</span>
+                    <strong id="metric-tempo" class="metric-time">Sem sinal</strong>
+                    <small>Última telemetria recebida</small>
+                </article>
+            </section>
 
-                <aside id="alertas" class="event-log">
-                    <div class="event-log-head">
+            <section class="lower-grid">
+                <article id="alertas" class="events-panel">
+                    <div class="panel-head">
                         <div>
-                            <span class="micro-label">REGISTRO / EVENTOS</span>
-                            <h2>Ocorrências</h2>
+                            <span class="section-label">Eventos</span>
+                            <h2>Ocorrências recentes</h2>
                         </div>
-                        <span class="event-led"><span></span>LIVE</span>
+                        <span class="panel-live"><span></span> ao vivo</span>
                     </div>
 
                     <div id="feed-alertas" class="event-feed">
                         <div class="empty-alerts text-gray-400">
-                            <span class="empty-code">00</span>
-                            <strong>Nenhum evento recente</strong>
-                            <p>As alterações relevantes da rede aparecerão aqui automaticamente.</p>
+                            <i class="fa-regular fa-circle-check"></i>
+                            <div>
+                                <strong>Nenhum evento recente</strong>
+                                <p>Alterações importantes da rede aparecerão aqui.</p>
+                            </div>
                         </div>
                     </div>
+                </article>
 
-                    <div class="event-log-foot">
-                        <span>Sistema de alertas ativo</span>
-                        <span>Supabase realtime + polling</span>
+                <aside class="gateway-panel">
+                    <span class="section-label">Fluxo de dados</span>
+                    <h2>Do sensor ao painel</h2>
+                    <div class="gateway-flow">
+                        <div><i class="fa-solid fa-microchip"></i><span>Arduino</span></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                        <div><i class="fa-brands fa-bluetooth-b"></i><span>HC-06</span></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                        <div><i class="fa-solid fa-mobile-screen-button"></i><span>App</span></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                        <div><i class="fa-solid fa-cloud"></i><span>Supabase</span></div>
                     </div>
+                    <p>O celular atua somente como gateway Bluetooth → Internet.</p>
                 </aside>
             </section>
         </main>
 
-        <footer class="site-footer">
-            <span>EcoTrack / Monitoramento inteligente de resíduos</span>
-            <span>HC-06 · App gateway · Supabase</span>
+        <footer>
+            <span>EcoTrack</span>
+            <span>Monitoramento inteligente de resíduos</span>
         </footer>
     </div>
 
-    <script type="module" src="script.js?v=5"></script>
+    <script type="module" src="script.js?v=6"></script>
 </body>
 </html>
