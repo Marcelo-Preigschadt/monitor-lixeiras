@@ -9,9 +9,9 @@ constexpr uint8_t PIN_BT_RX = 10;
 constexpr uint8_t PIN_BT_TX = 11;
 SoftwareSerial bluetooth(PIN_BT_RX, PIN_BT_TX);
 
-// Ajuste conforme a lixeira real: distância do sensor até o fundo quando vazia.
+// Distância do sensor até o fundo da lixeira quando ela está vazia.
 constexpr float ALTURA_LIXEIRA_CM = 50.0f;
-constexpr unsigned long INTERVALO_ENVIO_MS = 2000;
+constexpr unsigned long INTERVALO_ENVIO_MS = 1000;
 
 unsigned long ultimoEnvio = 0;
 
@@ -45,6 +45,10 @@ void setup() {
 
   Serial.begin(9600);
   bluetooth.begin(9600);
+
+  Serial.println(F("Monitor de lixeira iniciado"));
+  Serial.println(F("HC-SR04: TRIG=8 ECHO=9"));
+  Serial.println(F("Bluetooth: HC-05 TX->10 | HC-05 RX<-11"));
 }
 
 void loop() {
@@ -55,16 +59,20 @@ void loop() {
   const int percentual = calcularPercentual(distancia);
 
   if (percentual < 0) {
-    Serial.println(F("Falha na leitura do HC-SR04"));
+    // -1 serve apenas como diagnóstico para o aplicativo.
+    // A política do Supabase não aceita percentual negativo, portanto
+    // esse valor não será tratado como leitura válida pelo site.
+    bluetooth.println(-1);
+    Serial.println(F("ERRO: HC-SR04 sem resposta; enviado -1 via Bluetooth"));
     return;
   }
 
-  // O aplicativo lê uma linha por vez usando delimitador LF (10).
+  // O App Inventor usa LF (10) como delimitador.
   bluetooth.println(percentual);
 
   Serial.print(F("Distancia: "));
   Serial.print(distancia, 1);
   Serial.print(F(" cm | Ocupacao: "));
   Serial.print(percentual);
-  Serial.println(F("%"));
+  Serial.println(F("% | enviado via Bluetooth"));
 }
