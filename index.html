@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f4f5f0">
+    <meta name="theme-color" content="#102019">
     <title>EcoTrack | Monitoramento de Lixeiras</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
     <div class="page-shell">
@@ -34,7 +34,7 @@
                     <span id="status-dot" class="status-dot"></span>
                     <span id="status-texto">Verificando sensores...</span>
                 </div>
-                <div id="badge-alertas" class="alert-badge">
+                <div id="badge-alertas" class="alert-badge" title="Alertas ativos">
                     <i class="fa-regular fa-bell"></i>
                     <span id="qtd-alertas">0</span>
                 </div>
@@ -47,86 +47,108 @@
                     <span class="section-label">Central de monitoramento</span>
                     <h1>Nível das lixeiras em tempo real</h1>
                 </div>
-                <p>Ocupação, conectividade e histórico recente dos sensores instalados.</p>
+                <p>O foco do painel é a ocupação física de cada lixeira. Conectividade, eventos e métricas aparecem como apoio à leitura principal.</p>
             </section>
 
             <div id="erro-conexao" class="hidden connection-error"></div>
 
-            <section id="lixeiras" class="live-section">
-                <div class="section-head">
+            <section class="monitoring-stage">
+                <div class="stage-grid" aria-hidden="true"></div>
+                <div class="stage-orbit stage-orbit-one" aria-hidden="true"></div>
+                <div class="stage-orbit stage-orbit-two" aria-hidden="true"></div>
+
+                <div class="stage-heading">
                     <div>
-                        <h2>Lixeiras monitoradas</h2>
-                        <p>O recipiente mostra visualmente quanto já está ocupado.</p>
+                        <span class="stage-kicker">TELEMETRIA AMBIENTAL / AO VIVO</span>
+                        <h2>Ocupação dos recipientes</h2>
                     </div>
-                    <div class="live-indicator"><span></span> Atualização automática</div>
+                    <div class="stage-live"><span></span> Atualização automática</div>
                 </div>
 
-                <div id="lista-lixeiras" class="bin-grid">
-                    <div class="loading-state">
-                        <span class="loader"></span>
-                        <span>Carregando leituras...</span>
-                    </div>
-                </div>
-            </section>
-
-            <section id="indicadores" class="metrics-band" aria-label="Indicadores do sistema">
-                <article>
-                    <span>Lixeiras cadastradas</span>
-                    <strong id="metric-total">0</strong>
-                    <small>Total no sistema</small>
-                </article>
-                <article>
-                    <span>Críticas online</span>
-                    <strong id="metric-criticas">0</strong>
-                    <small>Nível acima de 80%</small>
-                </article>
-                <article>
-                    <span>Ocupação média</span>
-                    <strong id="metric-media">--</strong>
-                    <small>Somente sensores online</small>
-                </article>
-                <article>
-                    <span>Último sinal ativo</span>
-                    <strong id="metric-tempo" class="metric-time">Sem sinal</strong>
-                    <small>Última telemetria recebida</small>
-                </article>
-            </section>
-
-            <section class="lower-grid">
-                <article id="alertas" class="events-panel">
-                    <div class="panel-head">
-                        <div>
-                            <span class="section-label">Eventos</span>
-                            <h2>Ocorrências recentes</h2>
-                        </div>
-                        <span class="panel-live"><span></span> ao vivo</span>
-                    </div>
-
-                    <div id="feed-alertas" class="event-feed">
-                        <div class="empty-alerts text-gray-400">
-                            <i class="fa-regular fa-circle-check"></i>
+                <div class="monitor-grid">
+                    <article id="lixeiras" class="live-section">
+                        <div class="section-head">
                             <div>
-                                <strong>Nenhum evento recente</strong>
-                                <p>Alterações importantes da rede aparecerão aqui.</p>
+                                <span class="section-label">Dispositivos</span>
+                                <h2>Lixeiras monitoradas</h2>
+                                <p>O recipiente mostra visualmente o nível atual de ocupação.</p>
                             </div>
                         </div>
-                    </div>
-                </article>
 
-                <aside class="gateway-panel">
+                        <div id="lista-lixeiras" class="bin-grid">
+                            <div class="loading-state">
+                                <span class="loader"></span>
+                                <span>Carregando leituras...</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <aside id="alertas" class="events-panel">
+                        <div class="panel-head">
+                            <div>
+                                <span class="events-kicker">Eventos</span>
+                                <h2>Alertas recentes</h2>
+                                <p>Ocorrências importantes da rede aparecem aqui.</p>
+                            </div>
+                            <span class="panel-live"><span></span> ao vivo</span>
+                        </div>
+
+                        <div id="feed-alertas" class="event-feed">
+                            <div class="empty-alerts text-gray-400">
+                                <div class="empty-alert-icon"><i class="fa-regular fa-circle-check"></i></div>
+                                <div>
+                                    <strong>Nenhum evento recente</strong>
+                                    <p>Quando uma lixeira atingir níveis de atenção ou crítico, o evento será registrado aqui.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <section id="indicadores" class="metrics-band" aria-label="Indicadores do sistema">
+                    <article>
+                        <span>Lixeiras cadastradas</span>
+                        <strong id="metric-total">0</strong>
+                        <small>Total no sistema</small>
+                    </article>
+                    <article>
+                        <span>Críticas online</span>
+                        <strong id="metric-criticas">0</strong>
+                        <small>Nível acima de 80%</small>
+                    </article>
+                    <article>
+                        <span>Ocupação média</span>
+                        <strong id="metric-media">--</strong>
+                        <small>Somente sensores online</small>
+                    </article>
+                    <article>
+                        <span>Último sinal ativo</span>
+                        <strong id="metric-tempo" class="metric-time">Sem sinal</strong>
+                        <small>Última telemetria recebida</small>
+                    </article>
+                </section>
+            </section>
+
+            <section class="gateway-strip" aria-label="Fluxo de dados do sistema">
+                <div class="gateway-copy">
                     <span class="section-label">Fluxo de dados</span>
-                    <h2>Do sensor ao painel</h2>
-                    <div class="gateway-flow">
-                        <div><i class="fa-solid fa-microchip"></i><span>Arduino</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                        <div><i class="fa-brands fa-bluetooth-b"></i><span>HC-06</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                        <div><i class="fa-solid fa-mobile-screen-button"></i><span>App</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                        <div><i class="fa-solid fa-cloud"></i><span>Supabase</span></div>
+                    <div>
+                        <h2>Do sensor ao painel</h2>
+                        <p>O celular atua somente como gateway Bluetooth → Internet.</p>
                     </div>
-                    <p>O celular atua somente como gateway Bluetooth → Internet.</p>
-                </aside>
+                </div>
+
+                <div class="gateway-flow">
+                    <div class="gateway-node"><i class="fa-solid fa-microchip"></i><span>Arduino</span></div>
+                    <i class="fa-solid fa-arrow-right-long flow-arrow"></i>
+                    <div class="gateway-node"><i class="fa-brands fa-bluetooth-b"></i><span>HC-06</span></div>
+                    <i class="fa-solid fa-arrow-right-long flow-arrow"></i>
+                    <div class="gateway-node"><i class="fa-solid fa-mobile-screen-button"></i><span>App</span></div>
+                    <i class="fa-solid fa-arrow-right-long flow-arrow"></i>
+                    <div class="gateway-node"><i class="fa-solid fa-cloud"></i><span>Supabase</span></div>
+                    <i class="fa-solid fa-arrow-right-long flow-arrow"></i>
+                    <div class="gateway-node"><i class="fa-solid fa-display"></i><span>Painel</span></div>
+                </div>
             </section>
         </main>
 
@@ -136,6 +158,6 @@
         </footer>
     </div>
 
-    <script type="module" src="script.js?v=6"></script>
+    <script type="module" src="script.js?v=7"></script>
 </body>
 </html>
