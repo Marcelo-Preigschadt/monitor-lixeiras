@@ -116,8 +116,6 @@ async function sincronizarUltimasLeituras() {
             }
         }
 
-        // Renderiza em todo ciclo para que um sensor passe a Offline automaticamente
-        // quando deixa de transmitir, mesmo sem chegar uma nova leitura.
         renderizarDashboard()
     } catch (err) {
         bancoDisponivel = false
@@ -149,7 +147,6 @@ function atualizarLixeiraComLeitura(index, leitura, gerarAlerta) {
     lixeira.percentual = novoNivel
     lixeira.atualizado_em = leitura.criado_em ? new Date(leitura.criado_em) : new Date()
 
-    // Uma leitura antiga não deve gerar transição de alerta quando o sensor reconecta.
     if (gerarAlerta && estavaOnline && nivelAntigo !== null) {
         verificarRegrasDeAlerta(lixeira, nivelAntigo, novoNivel)
     }
@@ -185,28 +182,26 @@ function adicionarAlertaNoFeed(mensagem, tipo) {
     const feed = document.getElementById('feed-alertas')
     if (!feed) return
 
-    if (feed.querySelector('.text-gray-400')) feed.innerHTML = ''
+    if (feed.querySelector('.empty-alerts')) feed.innerHTML = ''
 
     const configs = {
-        danger: { card: 'bg-red-50 border-red-200 text-red-800', icon: 'fa-triangle-exclamation text-red-500' },
-        warning: { card: 'bg-amber-50 border-amber-200 text-amber-800', icon: 'fa-circle-exclamation text-amber-500' },
-        success: { card: 'bg-green-50 border-green-200 text-green-800', icon: 'fa-circle-check text-green-500' }
+        danger: { classe: 'event-danger', icon: 'fa-triangle-exclamation' },
+        warning: { classe: 'event-warning', icon: 'fa-circle-exclamation' },
+        success: { classe: 'event-success', icon: 'fa-circle-check' }
     }
 
     const config = configs[tipo] || configs.warning
     const div = document.createElement('div')
-    div.className = `p-3 rounded-lg border flex items-start gap-2.5 shadow-sm animate-slide-in ${config.card}`
+    div.className = `event-card ${config.classe}`
 
     const hora = new Date().toLocaleTimeString('pt-BR', {
         hour: '2-digit', minute: '2-digit', second: '2-digit'
     })
 
     div.innerHTML = `
-        <i class="fa-solid ${config.icon} mt-0.5 text-base"></i>
-        <div class="flex-1">
-            <p class="font-medium">${escapeHtml(mensagem)}</p>
-            <span class="text-[10px] opacity-70">${hora}</span>
-        </div>
+        <div class="event-icon"><i class="fa-solid ${config.icon}"></i></div>
+        <div><strong>${escapeHtml(mensagem)}</strong></div>
+        <time>${hora}</time>
     `
 
     feed.prepend(div)
@@ -220,66 +215,78 @@ function renderizarDashboard() {
     if (!listaContainer) return
 
     if (lixeiras.length === 0) {
-        listaContainer.innerHTML = '<p class="text-gray-500 text-center text-sm py-4">Nenhuma lixeira cadastrada.</p>'
+        listaContainer.innerHTML = '<div class="loading-state">Nenhuma lixeira cadastrada.</div>'
         return
     }
 
     listaContainer.innerHTML = lixeiras.map(lixeira => {
         const online = sensorEstaOnline(lixeira)
         const percentual = lixeira.percentual ?? 0
+        const nivelVisual = online ? percentual : 0
+        const livre = online ? 100 - percentual : null
 
-        let corBarra = 'bg-gray-400'
-        let corBg = 'bg-gray-100'
-        let corTexto = 'text-gray-600'
-        let textoBadge = 'Offline'
-        let larguraBarra = 0
+        let classeNivel = 'is-low'
+        let estado = 'Online'
+        let descricao = `${livre}% de capacidade livre`
 
-        if (online) {
-            larguraBarra = percentual
-            textoBadge = `${percentual}% Cheia`
-            corBarra = 'bg-green-500'
-            corBg = 'bg-green-50'
-            corTexto = 'text-green-700'
-
-            if (percentual >= 80) {
-                corBarra = 'bg-red-500'
-                corBg = 'bg-red-50'
-                corTexto = 'text-red-700'
-            } else if (percentual >= 60) {
-                corBarra = 'bg-amber-500'
-                corBg = 'bg-amber-50'
-                corTexto = 'text-amber-700'
-            }
+        if (!online) {
+            classeNivel = 'is-offline'
+            estado = 'Offline'
+            descricao = lixeira.percentual !== null
+                ? `Última leitura registrada: ${percentual}%`
+                : 'Aguardando a primeira leitura do sensor'
+        } else if (percentual >= 80) {
+            classeNivel = 'is-critical'
+            descricao = 'Nível crítico — esvaziamento recomendado'
+        } else if (percentual >= 60) {
+            classeNivel = 'is-medium'
+            descricao = 'Atenção — lixeira se aproximando do limite'
         }
 
         const ultimoSinal = formatarDataHora(lixeira.atualizado_em)
-        const historico = !online && lixeira.percentual !== null
-            ? `<span>Última leitura registrada: ${percentual}%</span>`
-            : '<span></span>'
+        const valorPrincipal = online ? percentual : '--'
 
         return `
-            <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-colors">
-                <div class="flex justify-between items-start mb-2 gap-4">
-                    <div>
-                        <h4 class="font-bold text-gray-800">${escapeHtml(lixeira.nome || `Lixeira ${lixeira.id}`)}</h4>
-                        <p class="text-xs text-gray-500 flex items-center gap-1">
-                            <i class="fa-solid fa-location-dot"></i>
-                            ${escapeHtml(lixeira.localizacao || 'Sem local')}
-                        </p>
+            <article class="bin-card ${classeNivel}" style="--level:${nivelVisual}%">
+                <div class="bin-visual-area">
+                    <div class="bin-lid"></div>
+                    <div class="bin-body" aria-label="${online ? `${percentual}% ocupada` : 'Sensor offline'}">
+                        <div class="bin-fill"></div>
+                        <div class="bin-scale" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <div class="bin-offline-label">SEM SINAL</div>
                     </div>
-                    <span class="px-2.5 py-1 text-xs font-bold rounded-full ${corBg} ${corTexto}">
-                        ${textoBadge}
-                    </span>
+                    <div class="bin-visual-caption">Nível físico estimado</div>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden shadow-inner">
-                    <div class="${corBarra} h-3.5 rounded-full transition-all duration-500 ease-out" style="width: ${larguraBarra}%"></div>
+
+                <div class="bin-info">
+                    <div class="bin-status-row">
+                        <span class="bin-status">${estado}</span>
+                        <span class="bin-id">Lixeira #${escapeHtml(lixeira.id)}</span>
+                    </div>
+
+                    <h3>${escapeHtml(lixeira.nome || `Lixeira ${lixeira.id}`)}</h3>
+                    <div class="bin-location">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${escapeHtml(lixeira.localizacao || 'Local não informado')}</span>
+                    </div>
+
+                    <div class="level-display">
+                        <strong>${valorPrincipal}</strong><span>%</span>
+                    </div>
+                    <p class="level-description">${escapeHtml(descricao)}</p>
+
+                    <div class="bin-meta">
+                        <div class="meta-item">
+                            <span>Altura cadastrada</span>
+                            <strong>${lixeira.altura_cm || 0} cm</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Último sinal</span>
+                            <strong>${ultimoSinal}</strong>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-between text-[11px] text-gray-400 mt-2 gap-4">
-                    <span>Altura cadastrada: ${lixeira.altura_cm || 0} cm</span>
-                    <span>Último sinal: ${ultimoSinal}</span>
-                </div>
-                <div class="text-[11px] text-gray-400 mt-1">${historico}</div>
-            </div>
+            </article>
         `
     }).join('')
 }
@@ -309,12 +316,7 @@ function calcularEMostrarMetricas() {
 
     document.getElementById('qtd-alertas').innerText = criticas
     const badge = document.getElementById('badge-alertas')
-
-    if (criticas > 0) {
-        badge.className = 'flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1.5 rounded-full border border-red-200 font-bold animate-bounce'
-    } else {
-        badge.className = 'flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200'
-    }
+    badge?.classList.toggle('has-alerts', criticas > 0)
 }
 
 function atualizarStatusDosSensores() {
@@ -335,28 +337,11 @@ function atualizarStatusDosSensores() {
 
 function atualizarStatusSistema(texto, tipo) {
     const status = document.getElementById('status-sistema')
-    const dot = document.getElementById('status-dot')
     const label = document.getElementById('status-texto')
-    if (!status || !dot || !label) return
+    if (!status || !label) return
 
-    const estilos = {
-        ok: {
-            status: 'flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200',
-            dot: 'h-2.5 w-2.5 bg-green-500 rounded-full animate-pulse'
-        },
-        offline: {
-            status: 'flex items-center gap-1.5 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200',
-            dot: 'h-2.5 w-2.5 bg-gray-400 rounded-full'
-        },
-        erro: {
-            status: 'flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1.5 rounded-full border border-red-200',
-            dot: 'h-2.5 w-2.5 bg-red-500 rounded-full'
-        }
-    }
-
-    const config = estilos[tipo] || estilos.offline
-    status.className = config.status
-    dot.className = config.dot
+    status.classList.remove('is-ok', 'is-offline', 'is-error')
+    status.classList.add(tipo === 'ok' ? 'is-ok' : tipo === 'erro' ? 'is-error' : 'is-offline')
     label.innerText = texto
 }
 
