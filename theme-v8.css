@@ -4,6 +4,13 @@ main {
     padding-top: 14px;
 }
 
+/* A barra superior acompanha a rolagem normal da página e não cobre o conteúdo. */
+.topbar {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1 !important;
+}
+
 /* A faixa introdutória foi removida do HTML; esta regra protege contra cache antigo. */
 .intro-row {
     display: none !important;
